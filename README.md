@@ -25,22 +25,6 @@ VESTBERRY_API_BASE_URL=https://api.vestberry.com/graphql
 ```
 
 
-## Quick Start
-
-```bash
-vestberry auth test
-vestberry schema pull
-vestberry fund list
-vestberry fund search --query "Sample Growth Fund"
-vestberry portfolio-company list --fund-id <fund-id>
-vestberry portfolio-summary list --fund-id <fund-id> --until YYYY-MM-DD --detailed
-vestberry portfolio overview --fund-id <fund-id> --export-json
-vestberry portfolio overview --fund-id <fund-id> --cut-off-date YYYY-MM-DD --export-json
-vestberry kpi overview --fund-id <fund-id>
-vestberry round list --company-id <company-id>
-vestberry captable-event list --company-id <company-id>
-```
-
 ## Global Flags
 
 - `--api-key <key>`
@@ -49,15 +33,17 @@ vestberry captable-event list --company-id <company-id>
 - `--verbose`
 - `--dry-run`
 
-## Command Model
+## Command Layers
 
-## Layer A primitives
+### Layer A: Primitive Wrappers
+
+Thin wrappers around single API operations. Use these when you want direct control over query inputs and raw response shapes.
 
 - `auth test`
 - `raw gql`, `raw http`
 - `fund list|get|search`
 - `portfolio-company list|get|search`
-- `portfolio-summary list`
+- `portfolio-summary get`
 - `investment list|search`
 - `round list|get|search`
 - `captable-event list`
@@ -66,7 +52,27 @@ vestberry captable-event list --company-id <company-id>
 - `note list|create|update`
 - `meta countries|currencies|fx-rates`
 
-## Layer B intents
+Examples:
+
+```bash
+vestberry auth test
+vestberry schema pull
+vestberry fund list
+vestberry fund get <fund-id>
+vestberry fund get <fund-id> --full
+vestberry fund search --query "Sample Growth Fund"
+vestberry portfolio-company list --fund-id <fund-id>
+vestberry portfolio-summary get <fund-id>
+vestberry portfolio-summary get <fund-id> --full
+vestberry portfolio-summary get <fund-id> --export-json
+vestberry kpi overview --fund-id <fund-id>
+vestberry round list --company-id <company-id>
+vestberry captable-event list --company-id <company-id>
+```
+
+### Layer B: Advanced Intent Commands
+
+Composed workflows that orchestrate multiple primitives and return opinionated output for common tasks.
 
 - `portfolio overview`
 - `portfolio companies`
@@ -74,6 +80,16 @@ vestberry captable-event list --company-id <company-id>
 - `rounds last-quarter`
 - `invested total`
 - `ingest legal-docs`
+
+Examples:
+
+```bash
+vestberry portfolio overview --fund-id <fund-id> --cut-off-date 2025-12-31 --export-json
+vestberry portfolio companies --fund-id <fund-id>
+vestberry company dossier --company-id <company-id> --fund-id <fund-id> --full
+vestberry rounds last-quarter --fund-id <fund-id>
+vestberry invested total --company "Company" --fund "Fund"
+```
 
 ## Output Formats
 

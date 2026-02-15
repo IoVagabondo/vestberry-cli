@@ -31,18 +31,20 @@ Examples:
 
   fund
     .command('get <id>')
+    .option('--full', 'Return full fund details', false)
     .description('Get fund by ID')
     .addHelpText(
       'after',
       `
 Examples:
   $ vestberry fund get abc123
-  $ vestberry fund get abc123 --format json`,
+  $ vestberry fund get abc123 --format json
+  $ vestberry fund get abc123 --full`,
     )
-    .action(async function action(id: string) {
+    .action(async function action(id: string, options: { full?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);
-        const row = await getFund(client, id, config.verbose);
+        const row = await getFund(client, id, config.verbose, Boolean(options.full));
         printData(row, config);
       } catch (error) {
         handleCliError(error, Boolean((this.optsWithGlobals() as { verbose?: boolean }).verbose));

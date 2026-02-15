@@ -8,6 +8,7 @@ const EXCLUDED_DIRS = new Set([
   'node_modules',
   'dist',
   '.cache',
+  'output',
   'coverage',
   'internal_docs',
 ]);

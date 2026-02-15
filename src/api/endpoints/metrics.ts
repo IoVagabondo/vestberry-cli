@@ -5,7 +5,10 @@ export interface PortfolioSummaryRow {
   id: string | null;
   investmentName: string;
   dashboardDetails: Record<string, unknown>;
-  portfolioCompany: { id: string; displayName: string } | null;
+  portfolioCompany: { id: string; displayName: string; [key: string]: unknown } | null;
+  portfolioFund?: { id: string; displayName: string; [key: string]: unknown } | null;
+  seatsAggregated?: Record<string, unknown> | null;
+  sectors?: Array<Record<string, unknown>>;
 }
 
 interface PortfolioSummaryResponse {
@@ -43,30 +46,100 @@ export interface PortfolioSummaryInput {
   companyId?: string;
   until?: string;
   detailed?: boolean;
+  full?: boolean;
 }
+
+const PORTFOLIO_SUMMARY_BASE_FIELDS = `
+  id
+  investmentName
+  portfolioCompany {
+    id
+    companyId
+    vatId
+    taxId
+    fullLegalName
+    stage
+    displayName
+    domicileCountry {
+      id
+      displayName
+      name
+    }
+    operatingCurrency {
+      id
+      name
+      code
+    }
+    logo {
+      id
+      path
+    }
+  }
+  portfolioFund {
+    id
+    companyId
+    vatId
+    taxId
+    fullLegalName
+    displayName
+    domicileCountry {
+      id
+      displayName
+      name
+    }
+    operatingCurrency {
+      id
+      name
+      code
+    }
+    logo {
+      id
+      path
+    }
+  }
+  dashboardDetails {
+    ownership
+    ownershipFD
+    investedEquity { local gp }
+    investedDebt { local gp }
+    investedFunds { local gp }
+    totalOriginalCost { local gp }
+    irr { local gp }
+    multiple { local gp }
+    latestInvestmentRoundDate { eventDate }
+  }
+`;
+
+const PORTFOLIO_SUMMARY_FULL_FIELDS = `
+  ${PORTFOLIO_SUMMARY_BASE_FIELDS}
+  seatsAggregated {
+    seats {
+      total
+      board
+      observer
+    }
+  }
+  sectors {
+    id
+    name
+    code
+    level
+    root
+    description
+    generalPartnerCompanyId
+  }
+`;
 
 export async function listPortfolioSummary(
   client: AxiosInstance,
   input: PortfolioSummaryInput,
   verbose = false,
 ): Promise<PortfolioSummaryRow[]> {
+  const fields = input.full ? PORTFOLIO_SUMMARY_FULL_FIELDS : PORTFOLIO_SUMMARY_BASE_FIELDS;
   const query = `
     query PortfolioSummary($input: PortfolioSummaryInput) {
       portfolioSummary(input: $input) {
-        id
-        investmentName
-        dashboardDetails {
-          ownership
-          ownershipFD
-          investedEquity { local gp }
-          investedDebt { local gp }
-          investedFunds { local gp }
-          totalOriginalCost { local gp }
-          irr { local gp }
-          multiple { local gp }
-          latestInvestmentRoundDate { eventDate }
-        }
-        portfolioCompany { id displayName }
+        ${fields}
       }
     }
   `;
