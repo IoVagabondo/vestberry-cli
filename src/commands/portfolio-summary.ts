@@ -10,6 +10,85 @@ import {
   writeJsonExportFile,
 } from '../utils/json-export';
 
+const DASHBOARD_BASE_FIELDS = [
+  'ownership',
+  'ownershipFD',
+  'investedEquity',
+  'investedDebt',
+  'investedFunds',
+  'totalOriginalCost',
+  'irr',
+  'multiple',
+] as const;
+
+const DASHBOARD_FULL_FIELDS = [
+  'investmentInstrument',
+  'entryRound',
+  'exits',
+  'status',
+  'totalFofInvestment',
+  'latestInvestmentStage',
+  'totalFollowOnInvestment',
+  'totalInitialInvestment',
+  'currentCost',
+  'investedOther',
+  'proceedsTotal',
+  'proceeds',
+  'debtRepayment',
+  'cashRealized',
+  'cashIncome',
+  'currentShareValue',
+  'companyValuation',
+  'firstCheckMoIC',
+  'totalReturn',
+  'outstandingDebt',
+  'totalCapitalGain',
+  'entryInvestmentStage',
+  'firstInvestmentEventDate',
+  'totalCommitment',
+  'fundedPortfolioFundCommitment',
+  'fundedPortfolioCompanyCommitment',
+  'unfundedPortfolioFundCommitment',
+  'unfundedPortfolioCompanyCommitment',
+  'latestFinancingRound',
+  'totalAmountRaised',
+] as const;
+
+const PORTFOLIO_COMPANY_FLAT_FIELDS = [
+  'portfolioCompanyId',
+  'portfolioCompanyVatId',
+  'portfolioCompanyTaxId',
+  'portfolioCompanyFullLegalName',
+  'portfolioCompanyStage',
+  'portfolioCompanyDisplayName',
+  'portfolioCompanyDomicileCountry',
+  'portfolioCompanyOperatingCurrency',
+  'portfolioCompanyLogo',
+] as const;
+
+const PORTFOLIO_SUMMARY_COMPANY_SELECTABLE_FIELDS = new Set<string>([
+  'id',
+  'investmentName',
+  ...PORTFOLIO_COMPANY_FLAT_FIELDS,
+  ...DASHBOARD_BASE_FIELDS,
+  ...DASHBOARD_FULL_FIELDS,
+  'seatsAggregated',
+  'sectors',
+]);
+
+const PORTFOLIO_SUMMARY_SUMMARY_SELECTABLE_FIELDS = new Set<string>(
+  ['id', 'investmentName', ...DASHBOARD_BASE_FIELDS, ...DASHBOARD_FULL_FIELDS].filter(
+    (field) => field !== 'ownership' && field !== 'ownershipFD' && field !== 'latestInvestmentRoundDate',
+  ),
+);
+
+interface PortfolioSummarySelectSpec {
+  companyFields: Set<string>;
+  summaryFields: Set<string>;
+  includeCompanies: boolean;
+  includeSummary: boolean;
+}
+
 export function hasPortfolioSummaryId(row: Record<string, unknown>): boolean {
   return typeof row.id === 'string' && row.id.trim().length > 0;
 }
@@ -125,25 +204,154 @@ export function buildPortfolioSummaryJsonPayload(
   return payload;
 }
 
-export function registerPortfolioSummaryCommand(program: Command): void {
-  const summary = program.command('portfolio-summary').description('Portfolio summary and metrics');
+function pickFields(
+  source: Record<string, unknown>,
+  selectedFields: Set<string>,
+): Record<string, unknown> {
+  const projected: Record<string, unknown> = {};
+  for (const field of selectedFields) {
+    if (field in source) {
+      projected[field] = source[field];
+    }
+  }
+  return projected;
+}
 
-  summary
-    .command('get <fundId>')
+function parseSelectToken(token: string): { scope: 'company' | 'summary' | 'any'; field: string } {
+  if (token.startsWith('portfolioCompanies.')) {
+    return { scope: 'company', field: token.slice('portfolioCompanies.'.length) };
+  }
+  if (token.startsWith('summary.')) {
+    return { scope: 'summary', field: token.slice('summary.'.length) };
+  }
+  return { scope: 'any', field: token };
+}
+
+export function parsePortfolioSummarySelect(select: string): PortfolioSummarySelectSpec {
+  const tokens = select
+    .split(',')
+    .map((token) => token.trim())
+    .filter((token) => token.length > 0);
+
+  if (tokens.length === 0) {
+    throw new Error(
+      'Invalid --select value. Provide a comma-separated list of fields, e.g. "id,investmentName,irr".',
+    );
+  }
+
+  const companyFields = new Set<string>();
+  const summaryFields = new Set<string>();
+  const unknownFields: string[] = [];
+
+  for (const token of tokens) {
+    const { scope, field } = parseSelectToken(token);
+    if (field.length === 0) {
+      unknownFields.push(token);
+      continue;
+    }
+
+    if (scope === 'company') {
+      if (!PORTFOLIO_SUMMARY_COMPANY_SELECTABLE_FIELDS.has(field)) {
+        unknownFields.push(token);
+        continue;
+      }
+      companyFields.add(field);
+      continue;
+    }
+
+    if (scope === 'summary') {
+      if (!PORTFOLIO_SUMMARY_SUMMARY_SELECTABLE_FIELDS.has(field)) {
+        unknownFields.push(token);
+        continue;
+      }
+      summaryFields.add(field);
+      continue;
+    }
+
+    const inCompany = PORTFOLIO_SUMMARY_COMPANY_SELECTABLE_FIELDS.has(field);
+    const inSummary = PORTFOLIO_SUMMARY_SUMMARY_SELECTABLE_FIELDS.has(field);
+    if (!inCompany && !inSummary) {
+      unknownFields.push(token);
+      continue;
+    }
+    if (inCompany) {
+      companyFields.add(field);
+    }
+    if (inSummary) {
+      summaryFields.add(field);
+    }
+  }
+
+  if (unknownFields.length > 0) {
+    throw new Error(`Unknown --select field(s): ${unknownFields.join(', ')}`);
+  }
+
+  return {
+    companyFields,
+    summaryFields,
+    includeCompanies: companyFields.size > 0,
+    includeSummary: summaryFields.size > 0,
+  };
+}
+
+export function applyPortfolioSummarySelect(
+  payload: Record<string, unknown>,
+  selectSpec: PortfolioSummarySelectSpec,
+): Record<string, unknown> {
+  const pagination = asRecord(payload.pagination) ?? {};
+  const companiesRaw = Array.isArray(payload.portfolioCompanies)
+    ? payload.portfolioCompanies.filter(
+        (row): row is Record<string, unknown> =>
+          Boolean(row) && typeof row === 'object' && !Array.isArray(row),
+      )
+    : [];
+  const summaryRaw = asRecord(payload.summary);
+
+  const portfolioCompanies = selectSpec.includeCompanies
+    ? companiesRaw
+        .map((row) => pickFields(row, selectSpec.companyFields))
+        .filter((row) => Object.keys(row).length > 0)
+    : [];
+
+  const projected: Record<string, unknown> = {
+    pagination: {
+      ...pagination,
+      count: portfolioCompanies.length,
+    },
+    portfolioCompanies,
+  };
+
+  if (selectSpec.includeSummary && summaryRaw) {
+    projected.summary = pickFields(summaryRaw, selectSpec.summaryFields);
+  }
+
+  return projected;
+}
+
+export function registerFundSummarySubcommand(fund: Command): void {
+  fund
+    .command('get-summary <fundId>')
+    .description('Get fund summary and metrics')
     .option('--full', 'Include extended sectors and seat aggregation details', false)
+    .option(
+      '--select <fields>',
+      'Comma-separated field projection. Use optional prefixes: portfolioCompanies.<field>, summary.<field>',
+    )
     .option('--export-json [path]', 'Export portfolio summary payload to JSON file')
     .addHelpText(
       'after',
       `
 Examples:
-  $ vestberry portfolio-summary get abc123
-  $ vestberry portfolio-summary get abc123 --full
-  $ vestberry portfolio-summary get abc123 --export-json
-  $ vestberry portfolio-summary get abc123 --format table`,
+  $ vestberry fund get-summary abc123
+  $ vestberry fund get-summary abc123 --full
+  $ vestberry fund get-summary abc123 --select id,investmentName,irr
+  $ vestberry fund get-summary abc123 --select portfolioCompanies.id,portfolioCompanies.irr,summary.irr
+  $ vestberry fund get-summary abc123 --export-json
+  $ vestberry fund get-summary abc123 --format table`,
     )
     .action(async function action(
       fundId: string,
-      options: { full?: boolean; exportJson?: string | boolean },
+      options: { full?: boolean; select?: string; exportJson?: string | boolean },
     ) {
       try {
         const { client, config } = getCommandContext(this);
@@ -168,23 +376,37 @@ Examples:
         );
         const envelope = createListEnvelope(dataRows);
         const payload = buildPortfolioSummaryJsonPayload(envelope, fundId, totalRow);
+        const selectSpec = options.select
+          ? parsePortfolioSummarySelect(options.select)
+          : undefined;
+        const projectedPayload = selectSpec
+          ? applyPortfolioSummarySelect(payload, selectSpec)
+          : payload;
 
         if (options.exportJson) {
           const defaultPath = buildDefaultJsonExportPath({
-            type: 'portfolio-summary',
+            type: 'fund-get-summary',
             idLabel: 'fund-id',
             id: fundId,
           });
           const requestedPath =
             typeof options.exportJson === 'string' ? options.exportJson : undefined;
           const filePath = await resolveJsonExportPath(requestedPath, defaultPath);
-          await writeJsonExportFile(filePath, payload);
-          process.stdout.write(`Saved portfolio summary JSON to ${filePath}\n`);
+          await writeJsonExportFile(filePath, projectedPayload);
+          process.stdout.write(`Saved fund summary JSON to ${filePath}\n`);
           return;
         }
 
         if (config.format === 'json') {
-          printData(payload, config);
+          printData(projectedPayload, config);
+          return;
+        }
+
+        if (selectSpec) {
+          const rows = Array.isArray(projectedPayload.portfolioCompanies)
+            ? (projectedPayload.portfolioCompanies as Array<Record<string, unknown>>)
+            : [];
+          printListEnvelope(createListEnvelope(rows), config);
           return;
         }
 

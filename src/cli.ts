@@ -4,7 +4,6 @@ import { registerAuthCommand } from './commands/auth';
 import { registerRawCommand } from './commands/raw';
 import { registerFundCommand } from './commands/fund';
 import { registerPortfolioCompanyCommand } from './commands/portfolio-company';
-import { registerPortfolioSummaryCommand } from './commands/portfolio-summary';
 import { registerInvestmentCommand } from './commands/investment';
 import { registerRoundCommand } from './commands/round';
 import { registerCaptableEventCommand } from './commands/captable-event';
@@ -14,6 +13,7 @@ import { registerNoteCommand } from './commands/note';
 import { registerMetaCommand } from './commands/meta';
 import { registerSchemaCommand } from './commands/schema';
 import { registerIntentCommands } from './commands/intent';
+import { registerAffinityCommand } from './commands/affinity';
 
 export function buildProgram(): Command {
   const program = new Command();
@@ -33,7 +33,6 @@ export function buildProgram(): Command {
   registerRawCommand(program);
   registerFundCommand(program);
   registerPortfolioCompanyCommand(program);
-  registerPortfolioSummaryCommand(program);
   registerInvestmentCommand(program);
   registerRoundCommand(program);
   registerCaptableEventCommand(program);
@@ -42,6 +41,7 @@ export function buildProgram(): Command {
   registerNoteCommand(program);
   registerMetaCommand(program);
   registerSchemaCommand(program);
+  registerAffinityCommand(program);
   registerIntentCommands(program);
 
   return program;

@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import { getPortfolioCompany, listPortfolioCompanies } from '../api/endpoints/companies';
+import { getPortfolioCompany } from '../api/endpoints/companies';
 import { searchCompanies } from '../resolvers/company';
 import { createListEnvelope } from '../utils/pagination';
 import { printData, printListEnvelope } from '../utils/output';
@@ -7,28 +7,6 @@ import { getCommandContext, handleCliError } from './common';
 
 export function registerPortfolioCompanyCommand(program: Command): void {
   const cmd = program.command('portfolio-company').description('Portfolio company commands');
-
-  cmd
-    .command('list')
-    .requiredOption('--fund-id <id>', 'Fund ID')
-    .option('--all', 'Return all available rows', false)
-    .description('List portfolio companies for a fund')
-    .addHelpText(
-      'after',
-      `
-Examples:
-  $ vestberry portfolio-company list --fund-id abc123
-  $ vestberry portfolio-company list --fund-id abc123 --format table`,
-    )
-    .action(async function action(options: { fundId: string; all?: boolean }) {
-      try {
-        const { client, config } = getCommandContext(this);
-        const rows = await listPortfolioCompanies(client, options.fundId, config.verbose);
-        printListEnvelope(createListEnvelope(rows), config);
-      } catch (error) {
-        handleCliError(error, Boolean((this.optsWithGlobals() as { verbose?: boolean }).verbose));
-      }
-    });
 
   cmd
     .command('get <companyId>')

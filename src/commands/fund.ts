@@ -1,5 +1,7 @@
 import type { Command } from 'commander';
 import { getFund, listFunds } from '../api/endpoints/funds';
+import { listPortfolioCompanies } from '../api/endpoints/companies';
+import { registerFundSummarySubcommand } from './portfolio-summary';
 import { searchFunds } from '../resolvers/fund';
 import { createListEnvelope } from '../utils/pagination';
 import { printData, printListEnvelope } from '../utils/output';
@@ -52,6 +54,26 @@ Examples:
     });
 
   fund
+    .command('get-portco-list <fundId>')
+    .description('List portfolio companies for a fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry fund get-portco-list abc123
+  $ vestberry fund get-portco-list abc123 --format table`,
+    )
+    .action(async function action(fundId: string) {
+      try {
+        const { client, config } = getCommandContext(this);
+        const rows = await listPortfolioCompanies(client, fundId, config.verbose);
+        printListEnvelope(createListEnvelope(rows), config);
+      } catch (error) {
+        handleCliError(error, Boolean((this.optsWithGlobals() as { verbose?: boolean }).verbose));
+      }
+    });
+
+  fund
     .command('search')
     .description('Search funds by display name')
     .requiredOption('--query <text>', 'Search text')
@@ -71,4 +93,6 @@ Examples:
         handleCliError(error, Boolean((this.optsWithGlobals() as { verbose?: boolean }).verbose));
       }
     });
+
+  registerFundSummarySubcommand(fund);
 }

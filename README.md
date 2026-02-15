@@ -41,9 +41,10 @@ Thin wrappers around single API operations. Use these when you want direct contr
 
 - `auth test`
 - `raw gql`, `raw http`
-- `fund list|get|search`
-- `portfolio-company list|get|search`
-- `portfolio-summary get`
+- `fund list|get|get-portco-list|search`
+- `portfolio-company get|search`
+- `fund get-summary`
+- `affinity portco dashboard`
 - `investment list|search`
 - `round list|get|search`
 - `captable-event list`
@@ -58,13 +59,18 @@ Examples:
 vestberry auth test
 vestberry schema pull
 vestberry fund list
+vestberry fund search --query "Sample Growth Fund"
 vestberry fund get <fund-id>
 vestberry fund get <fund-id> --full
-vestberry fund search --query "Sample Growth Fund"
-vestberry portfolio-company list --fund-id <fund-id>
-vestberry portfolio-summary get <fund-id>
-vestberry portfolio-summary get <fund-id> --full
-vestberry portfolio-summary get <fund-id> --export-json
+vestberry fund get-portco-list <fund-id>
+vestberry fund get-summary <fund-id>
+vestberry fund get-summary <fund-id> --full
+vestberry fund get-summary <fund-id> --select id,investmentName,irr,multiple
+vestberry fund get-summary <fund-id> --select portfolioCompanies.id,portfolioCompanies.irr,summary.irr
+vestberry fund get-summary <fund-id> --export-json
+vestberry portfolio-company search --fund-id <fund-id> --query "Sample Co"
+vestberry affinity portco dashboard <fund-id> <portco-id>
+vestberry affinity portco dashboard <fund-id> <portco-id> --format table
 vestberry kpi overview --fund-id <fund-id>
 vestberry round list --company-id <company-id>
 vestberry captable-event list --company-id <company-id>
@@ -119,12 +125,15 @@ Export payload structure:
 - `performance` (`numberOfCashFlows`, `numberOfNAVs`, `balance`, `tvpi`, `dpi`, `rvpi`, `netIrr`)
 - `portfolioCompanies` (flattened dashboard metrics preferring `fund`, then `gp`, then `local`; single latest `latestInvestmentRoundDate`)
 
-For `portfolio-summary get`, JSON output/export uses:
+For `fund get-summary`, JSON output/export uses:
 - `portfolioCompanies` (instead of `data`)
 - flattened company rows: `portfolioCompany.*` and `dashboardDetails.*` moved one level up
 - company rows exclude redundant `portfolioCompanyCompanyId` and exclude `portfolioFund`
 - flattened `summary`: `dashboardDetails.*` moved one level up
 - `summary.id` is set to the queried fund id
+- optional `--select <fields>` projection for prosumer/agent use:
+  - unscoped fields (e.g. `id,irr`) are applied where available
+  - scoped fields: `portfolioCompanies.<field>` and `summary.<field>`
 
 Rows are filtered to non-empty `id` and non-empty `portfolioCompany.id`; aggregate `TOTAL` is exposed as top-level `summary` when present.
 
