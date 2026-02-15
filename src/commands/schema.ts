@@ -9,6 +9,13 @@ export function registerSchemaCommand(program: Command): void {
   schema
     .command('pull')
     .description('Fetch GraphQL introspection schema and store in .cache')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry schema pull
+  $ vestberry schema pull --verbose`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);

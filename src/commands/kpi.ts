@@ -16,6 +16,13 @@ export function registerKpiCommand(program: Command): void {
     .command('overview')
     .requiredOption('--fund-id <id>', 'Fund ID')
     .description('Get KPI overview for fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry kpi overview --fund-id abc123
+  $ vestberry kpi overview --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { fundId: string }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -30,6 +37,13 @@ export function registerKpiCommand(program: Command): void {
     .command('definitions')
     .requiredOption('--company-id <id>', 'Portfolio company ID')
     .description('Get KPI definitions for company')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry kpi definitions --company-id xyz789
+  $ vestberry kpi definitions --company-id xyz789 --format table`,
+    )
     .action(async function action(options: { companyId: string }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -47,6 +61,15 @@ export function registerKpiCommand(program: Command): void {
     .option('--offset <n>', 'Offset', '0')
     .option('--all', 'Auto-page all rows', false)
     .description('List KPI reports for company')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry kpi reports --company-id xyz789
+  $ vestberry kpi reports --company-id xyz789 --limit 50
+  $ vestberry kpi reports --company-id xyz789 --all
+  $ vestberry kpi reports --company-id xyz789 --offset 20 --limit 10`,
+    )
     .action(async function action(options: {
       companyId: string;
       limit: string;
@@ -101,6 +124,14 @@ export function registerKpiCommand(program: Command): void {
     .option('--include-empty', 'Include empty KPIs', false)
     .option('--include-draft', 'Include draft values', false)
     .description('List KPI values for company')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry kpi values --company-id xyz789
+  $ vestberry kpi values --company-id xyz789 --include-empty
+  $ vestberry kpi values --company-id xyz789 --include-draft --format table`,
+    )
     .action(async function action(options: {
       companyId: string;
       includeEmpty?: boolean;

@@ -44,6 +44,13 @@ export function registerIntentCommands(program: Command): void {
     .command('overview')
     .requiredOption('--fund-id <id>', 'Fund ID')
     .description('Compose fund management + portfolio summary metrics')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio overview --fund-id abc123
+  $ vestberry portfolio overview --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { fundId: string }) {
       try {
         ensureDependencies({ getFundManagement, listPortfolioSummary });
@@ -68,6 +75,13 @@ export function registerIntentCommands(program: Command): void {
     .command('companies')
     .requiredOption('--fund-id <id>', 'Fund ID')
     .description('List portfolio companies for fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio companies --fund-id abc123
+  $ vestberry portfolio companies --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { fundId: string }) {
       try {
         ensureDependencies({ listPortfolioCompanies });
@@ -87,6 +101,14 @@ export function registerIntentCommands(program: Command): void {
     .option('--fund-id <id>', 'Fund ID (optional if unique from investments)')
     .option('--full', 'Include full fan-out details', false)
     .description('Compose company profile with summary, rounds, cap table and stakeholders')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry company dossier --company-id xyz789 --fund-id abc123
+  $ vestberry company dossier --company-id xyz789 --full
+  $ vestberry company dossier --company-id xyz789 --fund-id abc123 --full --format json`,
+    )
     .action(async function action(options: { companyId: string; fundId?: string; full?: boolean }) {
       try {
         ensureDependencies({
@@ -164,6 +186,13 @@ export function registerIntentCommands(program: Command): void {
     .command('last-quarter')
     .requiredOption('--fund-id <id>', 'Fund ID')
     .description('List financing rounds in last quarter for fund companies')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry rounds last-quarter --fund-id abc123
+  $ vestberry rounds last-quarter --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { fundId: string }) {
       try {
         ensureDependencies({ listPortfolioCompanies, listRounds });
@@ -204,6 +233,14 @@ export function registerIntentCommands(program: Command): void {
     .requiredOption('--fund <name>', 'Fund name')
     .option('--select-first', 'Select top search match when ambiguous', false)
     .description('Compute total invested amount in company')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry invested total --company "Tech Corp" --fund "Growth Fund"
+  $ vestberry invested total --company "AI Startup" --fund "Seed Fund" --select-first
+  $ vestberry invested total --company "Company" --fund "Fund" --format json`,
+    )
     .action(async function action(options: {
       company: string;
       fund: string;
@@ -260,6 +297,13 @@ export function registerIntentCommands(program: Command): void {
     .requiredOption('--file <path|@file>', 'Path to legal docs text/summary')
     .option('--apply', 'Execute writes (not implemented yet)', false)
     .description('Build staged dry-run ingestion plan for legal docs')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry ingest legal-docs --file @legal-summary.txt
+  $ vestberry ingest legal-docs --file @docs.json`,
+    )
     .action(async function action(options: { file: string; apply?: boolean }) {
       try {
         const { config } = getCommandContext(this);

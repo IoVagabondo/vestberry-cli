@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "Production-grade GraphQL CLI for Vestberry",
   "main": "dist/cli.js",
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "directories": {
     "doc": "docs"
   },
@@ -19,9 +27,20 @@
     "test:integration": "vitest run tests/integration",
     "prepare": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "vestberry",
+    "cli",
+    "graphql",
+    "portfolio",
+    "venture-capital",
+    "fund-management"
+  ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IoVagabondo/vestberry-cli.git"
+  },
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.5",

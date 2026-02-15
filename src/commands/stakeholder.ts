@@ -13,6 +13,13 @@ export function registerStakeholderCommand(program: Command): void {
     .requiredOption('--company-id <id>', 'Portfolio company ID')
     .option('--all', 'Return all available rows', false)
     .description('List stakeholders')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry stakeholder list --company-id xyz789
+  $ vestberry stakeholder list --company-id xyz789 --format table`,
+    )
     .action(async function action(options: { companyId: string; all?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -28,6 +35,13 @@ export function registerStakeholderCommand(program: Command): void {
     .requiredOption('--company-id <id>', 'Portfolio company ID')
     .requiredOption('--query <text>', 'Search query')
     .description('Search stakeholders by name')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry stakeholder search --company-id xyz789 --query "John"
+  $ vestberry stakeholder search --company-id xyz789 --query "Smith" --format table`,
+    )
     .action(async function action(options: { companyId: string; query: string }) {
       try {
         const { client, config } = getCommandContext(this);

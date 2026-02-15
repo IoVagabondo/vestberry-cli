@@ -13,6 +13,15 @@ export function registerPortfolioSummaryCommand(program: Command): void {
     .option('--company-id <id>', 'Portfolio company ID filter')
     .option('--until <date>', 'Cut-off date YYYY-MM-DD')
     .option('--detailed', 'Include detailed summary rows', false)
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio-summary list --fund-id abc123
+  $ vestberry portfolio-summary list --fund-id abc123 --until 2024-12-31
+  $ vestberry portfolio-summary list --fund-id abc123 --company-id xyz789 --detailed
+  $ vestberry portfolio-summary list --fund-id abc123 --detailed --format table`,
+    )
     .action(async function action(options: {
       fundId: string;
       companyId?: string;

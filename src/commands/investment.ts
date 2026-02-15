@@ -11,6 +11,13 @@ export function registerInvestmentCommand(program: Command): void {
   cmd
     .command('list')
     .description('List investments')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry investment list
+  $ vestberry investment list --format table`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);
@@ -25,6 +32,13 @@ export function registerInvestmentCommand(program: Command): void {
     .command('search')
     .requiredOption('--query <text>', 'Search query')
     .description('Search investments by company or fund name')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry investment search --query "Tech Corp"
+  $ vestberry investment search --query "Growth Fund" --format table`,
+    )
     .action(async function action(options: { query: string }) {
       try {
         const { client, config } = getCommandContext(this);

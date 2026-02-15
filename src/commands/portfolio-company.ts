@@ -13,6 +13,13 @@ export function registerPortfolioCompanyCommand(program: Command): void {
     .requiredOption('--fund-id <id>', 'Fund ID')
     .option('--all', 'Return all available rows', false)
     .description('List portfolio companies for a fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio-company list --fund-id abc123
+  $ vestberry portfolio-company list --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { fundId: string; all?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -27,6 +34,12 @@ export function registerPortfolioCompanyCommand(program: Command): void {
     .command('get <companyId>')
     .requiredOption('--fund-id <id>', 'Fund ID')
     .description('Get portfolio company by ID in fund context')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio-company get xyz789 --fund-id abc123`,
+    )
     .action(async function action(companyId: string, options: { fundId: string }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -42,6 +55,13 @@ export function registerPortfolioCompanyCommand(program: Command): void {
     .requiredOption('--fund-id <id>', 'Fund ID')
     .requiredOption('--query <text>', 'Search text')
     .description('Search portfolio companies within a fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry portfolio-company search --fund-id abc123 --query "Tech Corp"
+  $ vestberry portfolio-company search --fund-id abc123 --query "AI" --format table`,
+    )
     .action(async function action(options: { fundId: string; query: string }) {
       try {
         const { client, config } = getCommandContext(this);

@@ -12,6 +12,13 @@ export function registerCaptableEventCommand(program: Command): void {
     .requiredOption('--company-id <id>', 'Portfolio company ID')
     .option('--all', 'Return all available rows', false)
     .description('List cap table events for a company')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry captable-event list --company-id xyz789
+  $ vestberry captable-event list --company-id xyz789 --format table`,
+    )
     .action(async function action(options: { companyId: string; all?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);

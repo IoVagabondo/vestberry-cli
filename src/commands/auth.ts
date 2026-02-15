@@ -9,6 +9,13 @@ export function registerAuthCommand(program: Command): void {
   auth
     .command('test')
     .description('Verify token and connectivity')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry auth test
+  $ vestberry auth test --verbose`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);

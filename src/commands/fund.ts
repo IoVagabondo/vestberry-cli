@@ -11,6 +11,14 @@ export function registerFundCommand(program: Command): void {
   fund
     .command('list')
     .description('List funds')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry fund list
+  $ vestberry fund list --format table
+  $ vestberry fund list --no-compact`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);
@@ -24,6 +32,13 @@ export function registerFundCommand(program: Command): void {
   fund
     .command('get <id>')
     .description('Get fund by ID')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry fund get abc123
+  $ vestberry fund get abc123 --format json`,
+    )
     .action(async function action(id: string) {
       try {
         const { client, config } = getCommandContext(this);
@@ -38,6 +53,13 @@ export function registerFundCommand(program: Command): void {
     .command('search')
     .description('Search funds by display name')
     .requiredOption('--query <text>', 'Search text')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry fund search --query "Growth Fund"
+  $ vestberry fund search --query "Seed" --format table`,
+    )
     .action(async function action(options: { query: string }) {
       try {
         const { client, config } = getCommandContext(this);

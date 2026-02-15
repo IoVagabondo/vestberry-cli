@@ -13,6 +13,15 @@ export function registerRawCommand(program: Command): void {
     .requiredOption('--query <gql|@file>', 'GraphQL query string or @file')
     .option('--variables <json|@file>', 'Variables JSON or @file')
     .option('--operation <name>', 'Operation name')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry raw gql --query 'query { funds { id displayName } }'
+  $ vestberry raw gql --query @query.graphql
+  $ vestberry raw gql --query @query.graphql --variables '{"fundId":"abc123"}'
+  $ vestberry raw gql --query @introspect.graphql --operation IntrospectionQuery`,
+    )
     .action(async function action(options: {
       query: string;
       variables?: string;
@@ -40,6 +49,14 @@ export function registerRawCommand(program: Command): void {
     .description('Execute raw HTTP request against API base URL')
     .option('--data <json|@file>', 'Request body JSON')
     .option('--query <json|@file>', 'Query params JSON')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry raw http GET /api/health
+  $ vestberry raw http POST /graphql --data '{"query":"{ funds { id } }"}'
+  $ vestberry raw http GET /api/funds --query '{"limit":10}'`,
+    )
     .action(async function action(
       method: string,
       path: string,

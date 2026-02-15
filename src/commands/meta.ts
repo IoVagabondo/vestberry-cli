@@ -10,6 +10,13 @@ export function registerMetaCommand(program: Command): void {
   cmd
     .command('countries')
     .description('List countries')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry meta countries
+  $ vestberry meta countries --format table`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);
@@ -23,6 +30,13 @@ export function registerMetaCommand(program: Command): void {
   cmd
     .command('currencies')
     .description('List currencies')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry meta currencies
+  $ vestberry meta currencies --format table`,
+    )
     .action(async function action() {
       try {
         const { client, config } = getCommandContext(this);
@@ -38,6 +52,13 @@ export function registerMetaCommand(program: Command): void {
     .requiredOption('--fund-id <id>', 'Fund ID')
     .option('--limit <n>', 'Limit', '20')
     .description('Get FX rates summary for fund')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry meta fx-rates --fund-id abc123
+  $ vestberry meta fx-rates --fund-id abc123 --limit 50`,
+    )
     .action(async function action(options: { fundId: string; limit: string }) {
       try {
         const { client, config } = getCommandContext(this);

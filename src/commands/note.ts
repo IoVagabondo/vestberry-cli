@@ -15,6 +15,14 @@ export function registerNoteCommand(program: Command): void {
     .option('--fund-id <id>', 'Fund ID filter')
     .option('--all', 'Return all available rows', false)
     .description('List notes')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry note list
+  $ vestberry note list --company-id xyz789
+  $ vestberry note list --fund-id abc123 --format table`,
+    )
     .action(async function action(options: { companyId?: string; fundId?: string; all?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -38,6 +46,14 @@ export function registerNoteCommand(program: Command): void {
     .option('--apply', 'Execute mutation (otherwise dry-run)', false)
     .option('--dry-run', 'Force dry-run', true)
     .description('Create note (dry-run by default)')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry note create --data '{"content":"Meeting notes","portfolioCompany":{"id":"xyz789"}}'
+  $ vestberry note create --data @note-payload.json
+  $ vestberry note create --data @note.json --apply --no-dry-run`,
+    )
     .action(async function action(options: { data: string; apply?: boolean; dryRun?: boolean }) {
       try {
         const { client, config } = getCommandContext(this);
@@ -82,6 +98,14 @@ export function registerNoteCommand(program: Command): void {
     .option('--apply', 'Execute mutation (otherwise dry-run)', false)
     .option('--dry-run', 'Force dry-run', true)
     .description('Update note (dry-run by default)')
+    .addHelpText(
+      'after',
+      `
+Examples:
+  $ vestberry note update note123 --data '{"content":"Updated notes"}'
+  $ vestberry note update note123 --data @update.json
+  $ vestberry note update note123 --data @update.json --apply --no-dry-run`,
+    )
     .action(async function action(
       id: string,
       options: { data: string; apply?: boolean; dryRun?: boolean },
