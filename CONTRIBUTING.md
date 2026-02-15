@@ -2,7 +2,7 @@
 
 ## Setup
 
-1. Install dependencies: `npm install`
+1. Install dependencies: `npm ci`
 2. Create `.env` from `.env.example`
 3. Run checks before opening a PR:
 
@@ -10,6 +10,13 @@
 - `npm run type-check`
 - `npm run lint`
 - `npm run test`
+
+## Publishing
+
+Run before `npm publish`:
+
+- `npm run verify`
+- `npm pack --dry-run`
 
 ## Integration Tests
 

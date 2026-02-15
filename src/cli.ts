@@ -15,13 +15,15 @@ import { registerSchemaCommand } from './commands/schema';
 import { registerIntentCommands } from './commands/intent';
 import { registerPortcoCommand } from './commands/portco';
 
+const CLI_VERSION = (require('../package.json') as { version: string }).version;
+
 export function buildProgram(): Command {
   const program = new Command();
 
   program
     .name('vestberry')
     .description('Production-grade GraphQL CLI for Vestberry')
-    .version('1.0.0')
+    .version(CLI_VERSION)
     .option('--api-key <key>', 'Override API key (env fallback: VESTBERRY_API_KEY)')
     .option('--format <format>', 'Output format: json|table|csv', 'json')
     .option('--compact', 'Compact output mode', true)

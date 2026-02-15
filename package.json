@@ -1,7 +1,8 @@
 {
   "name": "vestberry-cli",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Production-grade GraphQL CLI for Vestberry",
+  "private": false,
   "main": "dist/cli.js",
   "files": [
     "dist/",
@@ -11,21 +12,20 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:secrets": "node scripts/check-no-secrets.mjs",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
     "dev": "tsx src/cli.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --check . && npm run lint",
     "type-check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "verify": "npm run lint && npm run type-check && npm run test && npm run test:secrets && npm run build",
     "test:integration": "vitest run tests/integration",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run verify"
   },
   "keywords": [
     "vestberry",
@@ -35,12 +35,15 @@
     "venture-capital",
     "fund-management"
   ],
-  "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/IoVagabondo/vestberry-cli.git"
   },
+  "bugs": {
+    "url": "https://github.com/IoVagabondo/vestberry-cli/issues"
+  },
+  "homepage": "https://github.com/IoVagabondo/vestberry-cli#readme",
   "type": "commonjs",
   "dependencies": {
     "axios": "^1.13.5",

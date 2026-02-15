@@ -31,3 +31,5 @@
 
 ### Security / Tooling
 - Secret scan script now excludes generated `output/` exports to avoid false positives from presigned URL query params.
+- Packaging flow now cleans `dist/` before builds and gates `npm publish` behind the full `npm run verify` suite.
+- CLI version output is now sourced from `package.json` to avoid drift between releases and `vestberry --version`.

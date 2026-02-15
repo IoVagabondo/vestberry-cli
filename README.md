@@ -5,6 +5,15 @@ Production-grade GraphQL CLI for Vestberry with two layers:
 - Layer A: primitive read/write commands
 - Layer B: intent/orchestration commands for agent workflows
 
+## Install from npm
+
+Requirements:
+- Node.js `>=18` (Node `20` recommended)
+
+```bash
+npm install -g vestberry-cli
+vestberry --help
+```
 
 ## From source
 
@@ -150,6 +159,14 @@ npm run type-check
 npm run lint
 npm run test
 npm run build
+```
+
+## Publishing (maintainers)
+
+```bash
+npm run verify
+npm pack --dry-run
+npm publish
 ```
 
 Integration tests (live API):
