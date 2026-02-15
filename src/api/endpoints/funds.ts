@@ -17,6 +17,29 @@ interface FundResponse {
   fund: Fund;
 }
 
+function hasNonEmptyId(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function normalizeFund(fund: Fund): Fund {
+  const portfolioSummaryRaw = fund.portfolioSummary;
+  if (!Array.isArray(portfolioSummaryRaw)) {
+    return fund;
+  }
+
+  const portfolioSummary = portfolioSummaryRaw.filter((row) => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      return false;
+    }
+    return hasNonEmptyId((row as { id?: unknown }).id);
+  });
+
+  return {
+    ...fund,
+    portfolioSummary,
+  };
+}
+
 const FUND_BASE_FIELDS = `
   id
   displayName
@@ -305,5 +328,5 @@ export async function getFund(
     { query, variables: { input: { id } } },
     verbose,
   );
-  return data.fund;
+  return normalizeFund(data.fund);
 }

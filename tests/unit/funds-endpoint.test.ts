@@ -64,4 +64,23 @@ describe('funds endpoint', () => {
     expect(request.query).toContain('vintageYear');
     expect(request.query).toContain('order');
   });
+
+  it('filters fund.portfolioSummary entries without non-empty id', async () => {
+    vi.mocked(executeGraphQL).mockResolvedValueOnce({
+      fund: {
+        id: 'fund-1',
+        displayName: 'Fund 1',
+        portfolioSummary: [
+          { id: 'ps-1', investmentName: 'A' },
+          { id: null, investmentName: 'TOTAL' },
+          { id: '', investmentName: 'B' },
+          { id: '   ', investmentName: 'C' },
+        ],
+      },
+    });
+
+    const fund = await getFund({} as AxiosInstance, 'fund-1', false, true);
+    expect(Array.isArray(fund.portfolioSummary)).toBe(true);
+    expect(fund.portfolioSummary).toEqual([{ id: 'ps-1', investmentName: 'A' }]);
+  });
 });
