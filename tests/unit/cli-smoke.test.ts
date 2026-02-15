@@ -21,7 +21,7 @@ describe('cli smoke', () => {
     expect(stdout).toContain('Usage: vestberry');
     expect(stdout).toContain('Commands:');
     expect(stdout).toContain('fund');
-    expect(stdout).toContain('affinity');
+    expect(stdout).toContain('portco');
     expect(stdout).not.toContain('portfolio-summary');
     expect(stdout).not.toContain('fund-summary');
   });

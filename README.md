@@ -44,7 +44,7 @@ Thin wrappers around single API operations. Use these when you want direct contr
 - `fund list|get|get-portco-list|search`
 - `portfolio-company get|search`
 - `fund get-summary`
-- `affinity portco dashboard`
+- `portco dashboard`
 - `investment list|search`
 - `round list|get|search`
 - `captable-event list`
@@ -69,8 +69,7 @@ vestberry fund get-summary <fund-id> --select id,investmentName,irr,multiple
 vestberry fund get-summary <fund-id> --select portfolioCompanies.id,portfolioCompanies.irr,summary.irr
 vestberry fund get-summary <fund-id> --export-json
 vestberry portfolio-company search --fund-id <fund-id> --query "Sample Co"
-vestberry affinity portco dashboard <fund-id> <portco-id>
-vestberry affinity portco dashboard <fund-id> <portco-id> --format table
+vestberry portco dashboard <fund-id> <portco-id>
 vestberry kpi overview --fund-id <fund-id>
 vestberry round list --company-id <company-id>
 vestberry captable-event list --company-id <company-id>

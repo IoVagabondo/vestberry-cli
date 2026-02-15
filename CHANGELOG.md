@@ -8,12 +8,13 @@
 - Layer A: `fund get-summary <fund-id> --full` for extended dashboard metrics plus `seatsAggregated` and `sectors`.
 - Layer A: `fund get-summary <fund-id> --select <fields>` for allowlisted field projections (`portfolioCompanies.<field>`, `summary.<field>`).
 - Layer A: `fund get-summary ... --export-json [path]` for local JSON exports (default to `output/` with timestamped filenames).
-- Layer A: `affinity portco dashboard <fund-id> <portco-id>` for `ledgerDashboardDetails` metrics scoped to fund + portfolio company.
+- Layer A: `portco dashboard <fund-id> <portco-id>` for `ledgerDashboardDetails` metrics scoped to fund + portfolio company.
 - Unit tests for funds endpoint query shape and portfolio summary command/endpoint behavior.
 
 ### Changed
 - `fund list` now follows `getFundNames` shape and returns `id`, `displayName`, `vintageYear`, `order`.
 - `fund get` query payload upgraded from minimal fields to richer fund metadata by default.
+- `fund get --full` now filters `portfolioSummary` entries to non-empty `id` values.
 - portfolio company listing moved from `portfolio-company list --fund-id <id>` to `fund get-portco-list <fund-id>`.
 - Layer A command renamed from `portfolio-summary` to `fund get-summary`.
 - `fund get-summary` moved from flag-heavy `list` usage to explicit `get-summary <fund-id>` plus `--full`.

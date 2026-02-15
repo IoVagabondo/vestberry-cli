@@ -13,7 +13,7 @@ import { registerNoteCommand } from './commands/note';
 import { registerMetaCommand } from './commands/meta';
 import { registerSchemaCommand } from './commands/schema';
 import { registerIntentCommands } from './commands/intent';
-import { registerAffinityCommand } from './commands/affinity';
+import { registerPortcoCommand } from './commands/portco';
 
 export function buildProgram(): Command {
   const program = new Command();
@@ -41,7 +41,7 @@ export function buildProgram(): Command {
   registerNoteCommand(program);
   registerMetaCommand(program);
   registerSchemaCommand(program);
-  registerAffinityCommand(program);
+  registerPortcoCommand(program);
   registerIntentCommands(program);
 
   return program;
