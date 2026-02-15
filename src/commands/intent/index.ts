@@ -10,10 +10,17 @@ import {
 import { listInvestments } from '../../api/endpoints/metrics';
 import { resolveFundId } from '../../resolvers/fund';
 import { resolveCompanyId } from '../../resolvers/company';
+import { getFund } from '../../api/endpoints/funds';
 import { createListEnvelope } from '../../utils/pagination';
 import { printData, printListEnvelope } from '../../utils/output';
 import { getCommandContext, handleCliError } from '../common';
 import { parseTextInput } from '../../utils/parse-json';
+import {
+  buildDefaultJsonExportPath,
+  resolveJsonExportPath,
+  writeJsonExportFile,
+} from '../../utils/json-export';
+import { buildPortfolioOverviewPayload } from '../../utils/portfolio-overview';
 
 function ensureDependencies(deps: Record<string, unknown>): void {
   for (const [name, value] of Object.entries(deps)) {
@@ -37,35 +44,86 @@ function lastQuarterRange(now = new Date()): { start: string; end: string } {
   };
 }
 
+function resolveCutOffDate(input?: string): string {
+  if (!input) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    throw new Error('Invalid --cut-off-date format. Expected YYYY-MM-DD.');
+  }
+
+  const parsed = new Date(`${input}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error('Invalid --cut-off-date value. Expected a valid calendar date.');
+  }
+  const normalized = parsed.toISOString().slice(0, 10);
+  if (normalized !== input) {
+    throw new Error('Invalid --cut-off-date value. Expected a valid calendar date.');
+  }
+
+  return input;
+}
+
 export function registerIntentCommands(program: Command): void {
   const portfolio = program.command('portfolio').description('Portfolio intent commands');
 
   portfolio
     .command('overview')
     .requiredOption('--fund-id <id>', 'Fund ID')
+    .option('--cut-off-date <date>', 'Cut-off date YYYY-MM-DD (default: today UTC)')
+    .option('--export-json [path]', 'Export overview payload to JSON file')
     .description('Compose fund management + portfolio summary metrics')
     .addHelpText(
       'after',
       `
 Examples:
   $ vestberry portfolio overview --fund-id abc123
-  $ vestberry portfolio overview --fund-id abc123 --format table`,
+  $ vestberry portfolio overview --fund-id abc123 --cut-off-date 2025-12-31
+  $ vestberry portfolio overview --fund-id abc123 --format table
+  $ vestberry portfolio overview --fund-id abc123 --export-json`,
     )
-    .action(async function action(options: { fundId: string }) {
+    .action(async function action(options: {
+      fundId: string;
+      cutOffDate?: string;
+      exportJson?: string | boolean;
+    }) {
       try {
-        ensureDependencies({ getFundManagement, listPortfolioSummary });
+        ensureDependencies({ getFundManagement, listPortfolioSummary, getFund });
         const { client, config } = getCommandContext(this);
-        const until = new Date().toISOString().slice(0, 10);
-        const [fundManagement, summary] = await Promise.all([
-          getFundManagement(client, options.fundId, until, config.verbose),
+        const cutOffDate = resolveCutOffDate(options.cutOffDate);
+        const [fundManagement, summary, fund] = await Promise.all([
+          getFundManagement(client, options.fundId, cutOffDate, config.verbose),
           listPortfolioSummary(
             client,
-            { fundId: options.fundId, until, detailed: true },
+            { fundId: options.fundId, until: cutOffDate, detailed: true },
             config.verbose,
           ),
+          getFund(client, options.fundId, config.verbose),
         ]);
 
-        printData({ until, fundManagement, summary }, config);
+        const payload = buildPortfolioOverviewPayload({
+          fundId: options.fundId,
+          fundName: fund.displayName,
+          cutOffDate,
+          fundManagement,
+          summary,
+        });
+        if (options.exportJson) {
+          const defaultPath = buildDefaultJsonExportPath({
+            type: 'portfolio-overview',
+            idLabel: 'fund-id',
+            id: options.fundId,
+          });
+          const requestedPath =
+            typeof options.exportJson === 'string' ? options.exportJson : undefined;
+          const filePath = await resolveJsonExportPath(requestedPath, defaultPath);
+          await writeJsonExportFile(filePath, payload);
+          process.stdout.write(`Saved portfolio overview JSON to ${filePath}\n`);
+          return;
+        }
+
+        printData(payload, config);
       } catch (error) {
         handleCliError(error, Boolean((this.optsWithGlobals() as { verbose?: boolean }).verbose));
       }

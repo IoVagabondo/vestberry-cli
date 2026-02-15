@@ -34,6 +34,8 @@ vestberry fund list
 vestberry fund search --query "Sample Growth Fund"
 vestberry portfolio-company list --fund-id <fund-id>
 vestberry portfolio-summary list --fund-id <fund-id> --until YYYY-MM-DD --detailed
+vestberry portfolio overview --fund-id <fund-id> --export-json
+vestberry portfolio overview --fund-id <fund-id> --cut-off-date YYYY-MM-DD --export-json
 vestberry kpi overview --fund-id <fund-id>
 vestberry round list --company-id <company-id>
 vestberry captable-event list --company-id <company-id>
@@ -83,6 +85,23 @@ vestberry captable-event list --company-id <company-id>
 
 Compact mode strips non-essential metadata and simplifies nested fields.
 Disable with `--no-compact`.
+
+## Portfolio Overview Export
+
+Use `--export-json [path]` on `portfolio overview` to write the payload to disk instead of printing full JSON to terminal.
+
+- `vestberry portfolio overview --fund-id <fund-id> --export-json`
+- `vestberry portfolio overview --fund-id <fund-id> --cut-off-date 2025-12-31 --export-json`
+- `vestberry portfolio overview --fund-id <fund-id> --export-json ./tmp/overview.json`
+
+When no path is provided, files are saved in `output/` with naming:
+`<timestamp>-portfolio-overview-fund-id-<fund-id>.json`
+
+Export payload structure:
+- `cutOffDate` (replaces `until`)
+- `fund` (`id`, `name`)
+- `performance` (`numberOfCashFlows`, `numberOfNAVs`, `balance`, `tvpi`, `dpi`, `rvpi`, `netIrr`)
+- `portfolioCompanies` (flattened dashboard metrics with GP values and single latest `latestInvestmentRoundDate`)
 
 ## Write Safety
 
