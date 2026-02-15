@@ -1,7 +1,12 @@
 import { Command } from 'commander';
 import { describe, expect, it } from 'vitest';
 import {
+  buildPortfolioSummaryJsonPayload,
+  flattenPortfolioSummaryAggregateRow,
+  flattenPortfolioSummaryCompanyRow,
+  hasPortfolioCompanyId,
   hasPortfolioSummaryId,
+  isPortfolioSummaryTotalRow,
   registerPortfolioSummaryCommand,
 } from '../../src/commands/portfolio-summary';
 
@@ -28,5 +33,105 @@ describe('portfolio-summary command', () => {
     expect(hasPortfolioSummaryId({ id: '' })).toBe(false);
     expect(hasPortfolioSummaryId({ id: '   ' })).toBe(false);
     expect(hasPortfolioSummaryId({})).toBe(false);
+  });
+
+  it('keeps only rows with non-empty portfolioCompany.id', () => {
+    expect(hasPortfolioCompanyId({ portfolioCompany: { id: 'pc-1' } })).toBe(true);
+    expect(hasPortfolioCompanyId({ portfolioCompany: { id: '  pc-2  ' } })).toBe(true);
+    expect(hasPortfolioCompanyId({ portfolioCompany: null })).toBe(false);
+    expect(hasPortfolioCompanyId({ portfolioCompany: { id: null } })).toBe(false);
+    expect(hasPortfolioCompanyId({ portfolioCompany: { id: '' } })).toBe(false);
+    expect(hasPortfolioCompanyId({})).toBe(false);
+  });
+
+  it('detects the TOTAL aggregate row even without an id', () => {
+    expect(isPortfolioSummaryTotalRow({ id: null, investmentName: 'TOTAL' })).toBe(true);
+    expect(isPortfolioSummaryTotalRow({ investmentName: ' total ' })).toBe(true);
+    expect(isPortfolioSummaryTotalRow({ id: 'abc123', investmentName: 'TOTAL' })).toBe(false);
+    expect(isPortfolioSummaryTotalRow({ id: null, investmentName: 'Acme' })).toBe(false);
+  });
+
+  it('flattens portfolio company row for json/export payload', () => {
+    const row = flattenPortfolioSummaryCompanyRow({
+      id: 'r-1',
+      investmentName: 'Acme',
+      portfolioFund: { id: 'pf-1', displayName: 'Fund X' },
+      portfolioCompany: {
+        id: 'pc-1',
+        companyId: 'redundant-company-id',
+        displayName: 'Acme GmbH',
+        taxId: 'T-1',
+      },
+      dashboardDetails: {
+        ownership: '2.3',
+        irr: { fund: '10', gp: '9', local: '8' },
+      },
+    });
+
+    expect(row).toMatchObject({
+      id: 'r-1',
+      investmentName: 'Acme',
+      portfolioCompanyId: 'pc-1',
+      portfolioCompanyDisplayName: 'Acme GmbH',
+      portfolioCompanyTaxId: 'T-1',
+      ownership: '2.3',
+      irr: { fund: '10', gp: '9', local: '8' },
+    });
+    expect('portfolioCompany' in row).toBe(false);
+    expect('portfolioCompanyCompanyId' in row).toBe(false);
+    expect('portfolioFund' in row).toBe(false);
+    expect('dashboardDetails' in row).toBe(false);
+  });
+
+  it('flattens summary dashboard details for json/export payload', () => {
+    const summary = flattenPortfolioSummaryAggregateRow({
+      id: null,
+      investmentName: 'TOTAL',
+      portfolioCompany: null,
+      portfolioFund: null,
+      dashboardDetails: {
+        ownership: null,
+        ownershipFD: null,
+        irr: { fund: '1.49', gp: '1.49', local: null },
+        multiple: { fund: '1.04', gp: '1.04', local: null },
+        latestInvestmentRoundDate: null,
+      },
+    }, 'fund-123');
+
+    expect(summary).toMatchObject({
+      id: 'fund-123',
+      investmentName: 'TOTAL',
+      irr: { fund: '1.49', gp: '1.49', local: null },
+      multiple: { fund: '1.04', gp: '1.04', local: null },
+    });
+    expect('ownership' in summary).toBe(false);
+    expect('ownershipFD' in summary).toBe(false);
+    expect('latestInvestmentRoundDate' in summary).toBe(false);
+    expect('portfolioCompany' in summary).toBe(false);
+    expect('portfolioFund' in summary).toBe(false);
+    expect('dashboardDetails' in summary).toBe(false);
+  });
+
+  it('renames data to portfolioCompanies in json/export payload', () => {
+    const payload = buildPortfolioSummaryJsonPayload(
+      {
+        pagination: { mode: 'none', count: 1 },
+        data: [
+          {
+            id: 'r-1',
+            investmentName: 'Acme',
+            portfolioCompany: { id: 'pc-1', displayName: 'Acme GmbH' },
+            dashboardDetails: { ownership: '2.3' },
+          },
+        ],
+      },
+      'fund-123',
+      { id: null, investmentName: 'TOTAL', dashboardDetails: { ownership: null } },
+    );
+
+    expect(payload).toHaveProperty('portfolioCompanies');
+    expect(payload).not.toHaveProperty('data');
+    expect(payload).toHaveProperty('summary');
+    expect((payload.summary as Record<string, unknown>).id).toBe('fund-123');
   });
 });

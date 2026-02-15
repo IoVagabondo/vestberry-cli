@@ -47,9 +47,84 @@ export interface PortfolioSummaryInput {
   until?: string;
   detailed?: boolean;
   full?: boolean;
+  includeLatestInvestmentRoundDate?: boolean;
 }
 
-const PORTFOLIO_SUMMARY_BASE_FIELDS = `
+const DASHBOARD_VALUE_FIELDS = `
+  fund
+  gp
+  local
+`;
+
+const PORTFOLIO_SUMMARY_DASHBOARD_BASE_FIELDS = `
+  ownership
+  ownershipFD
+  investedEquity { ${DASHBOARD_VALUE_FIELDS} }
+  investedDebt { ${DASHBOARD_VALUE_FIELDS} }
+  investedFunds { ${DASHBOARD_VALUE_FIELDS} }
+  totalOriginalCost { ${DASHBOARD_VALUE_FIELDS} }
+  irr { ${DASHBOARD_VALUE_FIELDS} }
+  multiple { ${DASHBOARD_VALUE_FIELDS} }
+`;
+
+const PORTFOLIO_SUMMARY_DASHBOARD_FULL_FIELDS = `
+  ${PORTFOLIO_SUMMARY_DASHBOARD_BASE_FIELDS}
+  investmentInstrument
+  entryRound
+  exits
+  status
+  totalFofInvestment { ${DASHBOARD_VALUE_FIELDS} }
+  latestInvestmentStage {
+    id
+    name
+  }
+  totalFollowOnInvestment { ${DASHBOARD_VALUE_FIELDS} }
+  totalInitialInvestment { ${DASHBOARD_VALUE_FIELDS} }
+  currentCost { ${DASHBOARD_VALUE_FIELDS} }
+  investedOther { ${DASHBOARD_VALUE_FIELDS} }
+  proceedsTotal { ${DASHBOARD_VALUE_FIELDS} }
+  proceeds { ${DASHBOARD_VALUE_FIELDS} }
+  debtRepayment { ${DASHBOARD_VALUE_FIELDS} }
+  cashRealized { ${DASHBOARD_VALUE_FIELDS} }
+  cashIncome { ${DASHBOARD_VALUE_FIELDS} }
+  currentShareValue { ${DASHBOARD_VALUE_FIELDS} }
+  companyValuation { ${DASHBOARD_VALUE_FIELDS} }
+  firstCheckMoIC { ${DASHBOARD_VALUE_FIELDS} }
+  totalReturn { ${DASHBOARD_VALUE_FIELDS} }
+  outstandingDebt { ${DASHBOARD_VALUE_FIELDS} }
+  totalCapitalGain { ${DASHBOARD_VALUE_FIELDS} }
+  entryInvestmentStage {
+    id
+    name
+  }
+  firstInvestmentEventDate
+  totalCommitment { ${DASHBOARD_VALUE_FIELDS} }
+  fundedPortfolioFundCommitment { ${DASHBOARD_VALUE_FIELDS} }
+  fundedPortfolioCompanyCommitment { ${DASHBOARD_VALUE_FIELDS} }
+  unfundedPortfolioFundCommitment { ${DASHBOARD_VALUE_FIELDS} }
+  unfundedPortfolioCompanyCommitment { ${DASHBOARD_VALUE_FIELDS} }
+  latestFinancingRound {
+    fund {
+      preMoneyValuation
+      postMoneyValuation
+    }
+    other {
+      preMoneyValuation
+      postMoneyValuation
+    }
+  }
+  totalAmountRaised { ${DASHBOARD_VALUE_FIELDS} }
+`;
+
+function dashboardFields(includeLatestInvestmentRoundDate: boolean, full: boolean): string {
+  const latestField = includeLatestInvestmentRoundDate ? '\n  latestInvestmentRoundDate { eventDate }' : '';
+  if (full) {
+    return `${PORTFOLIO_SUMMARY_DASHBOARD_FULL_FIELDS}${latestField}`;
+  }
+  return `${PORTFOLIO_SUMMARY_DASHBOARD_BASE_FIELDS}${latestField}`;
+}
+
+const PORTFOLIO_SUMMARY_ENTITY_FIELDS = `
   id
   investmentName
   portfolioCompany {
@@ -97,21 +172,9 @@ const PORTFOLIO_SUMMARY_BASE_FIELDS = `
       path
     }
   }
-  dashboardDetails {
-    ownership
-    ownershipFD
-    investedEquity { local gp }
-    investedDebt { local gp }
-    investedFunds { local gp }
-    totalOriginalCost { local gp }
-    irr { local gp }
-    multiple { local gp }
-    latestInvestmentRoundDate { eventDate }
-  }
 `;
 
-const PORTFOLIO_SUMMARY_FULL_FIELDS = `
-  ${PORTFOLIO_SUMMARY_BASE_FIELDS}
+const PORTFOLIO_SUMMARY_FULL_EXTRA_FIELDS = `
   seatsAggregated {
     seats {
       total
@@ -130,12 +193,24 @@ const PORTFOLIO_SUMMARY_FULL_FIELDS = `
   }
 `;
 
+function portfolioSummaryFields(full: boolean, includeLatestInvestmentRoundDate: boolean): string {
+  const dashboardDetailsFields = dashboardFields(includeLatestInvestmentRoundDate, full);
+  return `
+    ${PORTFOLIO_SUMMARY_ENTITY_FIELDS}
+    dashboardDetails {
+      ${dashboardDetailsFields}
+    }
+    ${full ? PORTFOLIO_SUMMARY_FULL_EXTRA_FIELDS : ''}
+  `;
+}
+
 export async function listPortfolioSummary(
   client: AxiosInstance,
   input: PortfolioSummaryInput,
   verbose = false,
 ): Promise<PortfolioSummaryRow[]> {
-  const fields = input.full ? PORTFOLIO_SUMMARY_FULL_FIELDS : PORTFOLIO_SUMMARY_BASE_FIELDS;
+  const includeLatestInvestmentRoundDate = input.includeLatestInvestmentRoundDate ?? true;
+  const fields = portfolioSummaryFields(Boolean(input.full), includeLatestInvestmentRoundDate);
   const query = `
     query PortfolioSummary($input: PortfolioSummaryInput) {
       portfolioSummary(input: $input) {

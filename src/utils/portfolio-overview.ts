@@ -30,9 +30,12 @@ function toNumberOrFallback(value: unknown, fallback: number): number {
   return fallback;
 }
 
-function pickGpOrScalar(value: unknown): unknown {
+function pickFundOrGpOrLocal(value: unknown): unknown {
   const record = asRecord(value);
   if (record) {
+    if (record.fund !== undefined && record.fund !== null) {
+      return record.fund;
+    }
     if (record.gp !== undefined && record.gp !== null) {
       return record.gp;
     }
@@ -40,8 +43,8 @@ function pickGpOrScalar(value: unknown): unknown {
       return record.local;
     }
 
-    // Keep export scalar-only for gp/local objects even when both values are null.
-    if ('gp' in record || 'local' in record) {
+    // Keep export scalar-only for fund/gp/local objects even when all are null.
+    if ('fund' in record || 'gp' in record || 'local' in record) {
       return null;
     }
   }
@@ -114,10 +117,16 @@ export function buildPortfolioOverviewPayload(
     numberOfCashFlows: toNumberOrFallback(input.fundManagement.numberOfCashFlows, 0),
     numberOfNAVs: toNumberOrFallback(input.fundManagement.numberOfNAVs, 0),
     balance: toStringOrFallback(input.fundManagement.balance, '0'),
-    tvpi: toStringOrFallback(input.fundManagement.tvpi, toStringOrFallback(pickGpOrScalar(totalDetails?.multiple), '0')),
+    tvpi: toStringOrFallback(
+      input.fundManagement.tvpi,
+      toStringOrFallback(pickFundOrGpOrLocal(totalDetails?.multiple), '0'),
+    ),
     dpi: toStringOrFallback(input.fundManagement.dpi, '0'),
     rvpi: toStringOrFallback(input.fundManagement.rvpi, '0'),
-    netIrr: toStringOrFallback(input.fundManagement.netIrr, toStringOrFallback(pickGpOrScalar(totalDetails?.irr), '0')),
+    netIrr: toStringOrFallback(
+      input.fundManagement.netIrr,
+      toStringOrFallback(pickFundOrGpOrLocal(totalDetails?.irr), '0'),
+    ),
   };
 
   const portfolioCompanies = input.summary.map((row) => {
@@ -132,12 +141,12 @@ export function buildPortfolioOverviewPayload(
         typeof company?.displayName === 'string' ? company.displayName : null,
       ownership: details.ownership ?? null,
       ownershipFD: details.ownershipFD ?? null,
-      investedEquity: pickGpOrScalar(details.investedEquity),
-      investedDebt: pickGpOrScalar(details.investedDebt),
-      investedFunds: pickGpOrScalar(details.investedFunds),
-      totalOriginalCost: pickGpOrScalar(details.totalOriginalCost),
-      irr: pickGpOrScalar(details.irr),
-      multiple: pickGpOrScalar(details.multiple),
+      investedEquity: pickFundOrGpOrLocal(details.investedEquity),
+      investedDebt: pickFundOrGpOrLocal(details.investedDebt),
+      investedFunds: pickFundOrGpOrLocal(details.investedFunds),
+      totalOriginalCost: pickFundOrGpOrLocal(details.totalOriginalCost),
+      irr: pickFundOrGpOrLocal(details.irr),
+      multiple: pickFundOrGpOrLocal(details.multiple),
       latestInvestmentRoundDate: latestRoundDate(details.latestInvestmentRoundDate),
     };
   });

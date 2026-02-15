@@ -132,4 +132,53 @@ describe('portfolio overview payload', () => {
       latestInvestmentRoundDate: null,
     });
   });
+
+  it('prefers fund values over gp/local when available', () => {
+    const summary: PortfolioSummaryRow[] = [
+      {
+        id: 'row-fund',
+        investmentName: 'Acme',
+        dashboardDetails: {
+          investedEquity: { fund: '101', gp: '11', local: '10' },
+          investedDebt: { fund: '202', gp: '22', local: '20' },
+          investedFunds: { fund: '303', gp: '33', local: '30' },
+          totalOriginalCost: { fund: '404', gp: '44', local: '40' },
+          irr: { fund: '8.5', gp: '6', local: '5' },
+          multiple: { fund: '2.4', gp: '1.3', local: '1.2' },
+          latestInvestmentRoundDate: [],
+        },
+        portfolioCompany: null,
+      },
+      {
+        id: null,
+        investmentName: 'TOTAL',
+        dashboardDetails: {
+          irr: { fund: '9.9', gp: '8.2' },
+          multiple: { fund: '3.3', gp: '1.9' },
+        },
+        portfolioCompany: null,
+      },
+    ];
+
+    const payload = buildPortfolioOverviewPayload({
+      fundId: 'fund-4',
+      cutOffDate: '2026-02-15',
+      fundManagement: {
+        tvpi: null,
+        netIrr: null,
+      },
+      summary,
+    });
+
+    expect(payload.performance.tvpi).toBe('3.3');
+    expect(payload.performance.netIrr).toBe('9.9');
+    expect(payload.portfolioCompanies[0]).toMatchObject({
+      investedEquity: '101',
+      investedDebt: '202',
+      investedFunds: '303',
+      totalOriginalCost: '404',
+      irr: '8.5',
+      multiple: '2.4',
+    });
+  });
 });

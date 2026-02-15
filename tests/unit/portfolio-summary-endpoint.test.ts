@@ -25,8 +25,23 @@ describe('portfolio summary endpoint', () => {
     expect(request.query).toContain('stage');
     expect(request.query).toContain('portfolioFund');
     expect(request.query).toContain('dashboardDetails');
+    expect(request.query).toContain('fund');
+    expect(request.query).toContain('latestInvestmentRoundDate');
     expect(request.query).not.toContain('seatsAggregated');
     expect(request.query).not.toContain('sectors');
+    expect(request.query).not.toContain('totalReturn');
+  });
+
+  it('can skip latestInvestmentRoundDate field when requested', async () => {
+    await listPortfolioSummary({} as AxiosInstance, {
+      fundId: 'fund-1',
+      includeLatestInvestmentRoundDate: false,
+    });
+
+    const call = vi.mocked(executeGraphQL).mock.calls[0];
+    expect(call).toBeDefined();
+    const request = call?.[1] as { query: string; variables: Record<string, unknown> };
+    expect(request.query).not.toContain('latestInvestmentRoundDate');
   });
 
   it('uses full query when full flag is set', async () => {
@@ -37,5 +52,7 @@ describe('portfolio summary endpoint', () => {
     const request = call?.[1] as { query: string; variables: Record<string, unknown> };
     expect(request.query).toContain('seatsAggregated');
     expect(request.query).toContain('sectors');
+    expect(request.query).toContain('totalReturn');
+    expect(request.query).toContain('currentCost');
   });
 });

@@ -117,7 +117,16 @@ Export payload structure:
 - `cutOffDate` (replaces `until`)
 - `fund` (`id`, `name`)
 - `performance` (`numberOfCashFlows`, `numberOfNAVs`, `balance`, `tvpi`, `dpi`, `rvpi`, `netIrr`)
-- `portfolioCompanies` (flattened dashboard metrics with GP values and single latest `latestInvestmentRoundDate`)
+- `portfolioCompanies` (flattened dashboard metrics preferring `fund`, then `gp`, then `local`; single latest `latestInvestmentRoundDate`)
+
+For `portfolio-summary get`, JSON output/export uses:
+- `portfolioCompanies` (instead of `data`)
+- flattened company rows: `portfolioCompany.*` and `dashboardDetails.*` moved one level up
+- company rows exclude redundant `portfolioCompanyCompanyId` and exclude `portfolioFund`
+- flattened `summary`: `dashboardDetails.*` moved one level up
+- `summary.id` is set to the queried fund id
+
+Rows are filtered to non-empty `id` and non-empty `portfolioCompany.id`; aggregate `TOTAL` is exposed as top-level `summary` when present.
 
 ## Write Safety
 
