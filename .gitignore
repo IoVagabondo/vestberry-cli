@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.cache/
+.vitest/
+.env
+internal_docs/
+*.log
+.DS_Store
+
+AGENTS.md
+TODO.md
+CHANGELOG.md

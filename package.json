@@ -1,0 +1,48 @@
+{
+  "name": "vestberry-cli",
+  "version": "1.0.0",
+  "description": "Production-grade GraphQL CLI for Vestberry",
+  "main": "dist/cli.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:secrets": "node scripts/check-no-secrets.mjs",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx src/cli.ts",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --check . && npm run lint",
+    "type-check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "verify": "npm run lint && npm run type-check && npm run test && npm run test:secrets && npm run build",
+    "test:integration": "vitest run tests/integration",
+    "prepare": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "csv-stringify": "^6.6.0",
+    "dotenv": "^17.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "@types/node": "^25.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.55.0",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "bin": {
+    "vestberry": "dist/cli.js"
+  }
+}
